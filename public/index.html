@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeirdHat Community Posts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Darker background */
+            background-image: url('https://giffiles.alphacoders.com/220/220122.gif');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+        .header-container,
+        .search-container,
+        .content-container {
+            max-width: 800px;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.2); /* More transparent dark color */
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .search-container,
+        .content-container {
+            margin-top: 2rem;
+        }
+        .posts-list {
+            background-color: rgba(0, 0, 0, 0.2); /* More transparent dark color */
+            backdrop-filter: blur(5px);
+        }
+        .post-card {
+            background-color: rgba(0, 0, 0, 0.2); /* More transparent dark for post cards */
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .reply-box {
+            background-color: rgba(255, 255, 255, 0.1); /* Lighter translucent gray for reply box */
+            backdrop-filter: blur(3px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: rgba(30, 41, 59, 0.9); /* Darker, slightly transparent modal */
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+        }
+        .close-button {
+            color: #94a3b8;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover, .close-button:focus {
+            color: #f8fafc;
+        }
+        .vote-button {
+            transition: all 0.2s ease-in-out;
+            transform: scale(1.0);
+        }
+        .vote-button:hover {
+            transform: scale(1.05);
+        }
+        .vote-button.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            transform: scale(1.0);
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <!-- The Header Box -->
+    <div class="header-container p-6 md:p-8 text-center">
+        <h1 class="text-4xl font-bold text-gray-200">WeirdHat 🧢</h1>
+        <p class="text-gray-400 mt-2">A place for hat enthusiasts. Share your latest creations!</p>
+    </div>
+
+    <!-- The Search Box -->
+    <div class="search-container p-6 md:p-8">
+        <div class="flex items-center space-x-2">
+            <input type="text" id="search-input"
+                   class="w-full p-3 border border-gray-600 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+                   placeholder="Search for #hashtags or post headings...">
+            <button id="search-btn"
+                    class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
+                Search
+            </button>
+        </div>
+    </div>
+
+    <!-- The Content Box -->
+    <div class="content-container p-6 md:p-8 space-y-6">
+        <h2 class="text-2xl font-semibold mb-4 text-gray-300 text-center">Share Something That You Can't Share in Person. 🤔</h2>
+
+        <!-- Post Input -->
+        <div class="mb-4 space-y-3">
+            <input type="text" id="post-heading-input"
+                    class="w-full p-3 border border-gray-600 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+                    placeholder="Add a heading for your post...">
+            
+            <input type="text" id="post-hashtag-input"
+                    class="w-full p-3 border border-gray-600 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+                    placeholder="Add a hashtag (e.g., #newhats) - no spaces">
+
+            <textarea id="post-input"
+                        class="w-full p-3 border border-gray-600 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-y transition duration-200"
+                        rows="3"
+                        placeholder="Share your thoughts or a link to your hat masterpiece!"></textarea>
+
+            <div class="flex flex-col items-center justify-center space-y-3">
+                <div id="image-preview" class="hidden w-full max-w-sm rounded-lg overflow-hidden border border-gray-600">
+                    <img id="image-preview-img" src="" alt="Image preview" class="w-full h-auto object-cover">
+                </div>
+                <label for="image-upload" class="cursor-pointer bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg text-sm transition duration-300 ease-in-out">
+                    Add an Image
+                </label>
+                <input type="file" id="image-upload" class="hidden" accept="image/*">
+            </div>
+
+            <!-- Centered Post Button -->
+            <div class="flex justify-center mt-3">
+                <button id="submit-post-btn"
+                        class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-8 rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                    Post
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Message -->
+        <div id="loading-message" class="text-center text-gray-300 my-4">Initializing application...</div>
+
+        <!-- Posts List -->
+        <div id="posts-list" class="posts-list text-left space-y-6 max-h-[500px] overflow-y-auto p-2 md:p-4 rounded-lg border border-gray-600">
+            <!-- Posts will be loaded here dynamically -->
+            <p class="text-gray-400 text-center">No posts yet. Be the first to share your thoughts!</p>
+        </div>
+    </div>
+
+    <!-- Custom Modal for messages -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <p id="modal-message"></p>
+        </div>
+    </div>
+
+    <script>
+        // HTML element references
+        const postInput = document.getElementById('post-input');
+        const postHeadingInput = document.getElementById('post-heading-input');
+        const postHashtagInput = document.getElementById('post-hashtag-input');
+        const submitPostBtn = document.getElementById('submit-post-btn');
+        const postsList = document.getElementById('posts-list');
+        const loadingMessage = document.getElementById('loading-message');
+        const modal = document.getElementById('myModal');
+        const modalMessage = document.getElementById('modal-message');
+        const imageUploadInput = document.getElementById('image-upload');
+        const imagePreviewContainer = document.getElementById('image-preview');
+        const imagePreviewImg = document.getElementById('image-preview-img');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+
+        let selectedFile = null;
+
+        imageUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreviewImg.src = e.target.result;
+                    imagePreviewContainer.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreviewContainer.classList.add('hidden');
+                imagePreviewImg.src = '';
+                selectedFile = null;
+            }
+        });
+
+        function showModal(message) {
+            modalMessage.textContent = message;
+            modal.style.display = 'flex';
+        }
+
+        window.closeModal = function() {
+            modal.style.display = 'none';
+        }
+
+        function displayPosts(posts) {
+            postsList.innerHTML = '';
+            if (posts.length === 0) {
+                postsList.innerHTML = '<p class="text-gray-400 text-center">No posts yet. Be the first to share your thoughts!</p>';
+                return;
+            }
+
+            posts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.className = 'post-card p-4 rounded-xl shadow-sm';
+
+                let imageHtml = '';
+                if (post.imageUrl) {
+                    imageHtml = `<img src="${post.imageUrl}" alt="User uploaded image" class="w-full h-auto max-w-lg mx-auto my-4 rounded-lg shadow-md">`;
+                }
+                
+                let headingHtml = '';
+                if (post.heading) {
+                    headingHtml = `<h3 class="text-xl font-bold text-gray-200 mb-2">${post.heading}</h3>`;
+                }
+
+                let hashtagHtml = '';
+                if (post.hashtag) {
+                    hashtagHtml = `<p class="text-purple-400 font-semibold text-sm mb-2">${post.hashtag}</p>`;
+                }
+                
+                postElement.innerHTML = `
+                    <p class="text-sm text-gray-400 font-semibold mb-1">Anonymous</p>
+                    ${headingHtml}
+                    ${hashtagHtml}
+                    ${imageHtml}
+                    <p class="text-gray-200 break-words mt-2">${post.content}</p>
+
+                    <div class="flex items-center mt-4 text-gray-400 text-sm space-x-4">
+                        <div class="flex items-center space-x-1">
+                            <button class="vote-button flex items-center space-x-1 text-green-400 hover:text-green-500 transition-colors" data-post-id="${post.id}" data-vote-type="upvote">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.25l-7 7h4v8h6v-8h4z"/></svg>
+                                <span>Upvote</span>
+                            </button>
+                            <span class="font-bold text-gray-300">${post.upvotes || 0}</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <button class="vote-button flex items-center space-x-1 text-red-400 hover:text-red-500 transition-colors" data-post-id="${post.id}" data-vote-type="downvote">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 19.75l7-7h-4v-8h-6v8h-4z"/></svg>
+                                <span>Downvote</span>
+                            </button>
+                            <span class="font-bold text-gray-300">${post.downvotes || 0}</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                           <button class="toggle-replies-btn flex items-center space-x-1 text-gray-400 hover:text-gray-500 transition-colors" data-post-id="${post.id}">
+                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                               <span>Replies (${post.repliesCount || 0})</span>
+                           </button>
+                        </div>
+                    </div>
+                    <div class="replies-section hidden transition-all duration-300 ease-in-out mt-4">
+                        <div class="flex items-center space-x-2">
+                            <input type="text" placeholder="Write a reply..." class="reply-input reply-box w-full p-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 text-sm text-gray-200">
+                            <button class="submit-reply-btn bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg text-sm transition duration-300 ease-in-out">Reply</button>
+                        </div>
+                        <div class="replies-list border-t border-gray-600 pt-3 mt-3 ml-6 space-y-3">
+                            <p class="text-gray-500 text-sm text-center">No replies yet.</p>
+                        </div>
+                    </div>
+                `;
+
+                postsList.appendChild(postElement);
+
+                postElement.querySelector('.vote-button[data-vote-type="upvote"]').addEventListener('click', () => handleVote(post.id, 'upvote'));
+                postElement.querySelector('.vote-button[data-vote-type="downvote"]').addEventListener('click', () => handleVote(post.id, 'downvote'));
+                
+                const toggleRepliesBtn = postElement.querySelector('.toggle-replies-btn');
+                const repliesSection = postElement.querySelector('.replies-section');
+                toggleRepliesBtn.addEventListener('click', () => {
+                    repliesSection.classList.toggle('hidden');
+                    if (!repliesSection.classList.contains('hidden')) {
+                        fetchReplies(post.id, repliesSection.querySelector('.replies-list'));
+                    }
+                });
+
+                const submitReplyBtn = postElement.querySelector('.submit-reply-btn');
+                const replyInput = postElement.querySelector('.reply-input');
+                submitReplyBtn.addEventListener('click', () => handleSubmitReply(post.id, replyInput));
+            });
+        }
+
+        async function handleVote(postId, voteType) {
+            try {
+                const response = await fetch(`/api/posts/${postId}/vote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ voteType }),
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to vote');
+                }
+                fetchAndDisplayPosts(); // Refresh posts after voting
+            } catch (error) {
+                console.error('Error voting:', error);
+                showModal('Failed to vote. Please try again.');
+            }
+        }
+
+        async function submitPost() {
+            const postContent = postInput.value.trim();
+            const postHeading = postHeadingInput.value.trim();
+            let postHashtag = postHashtagInput.value.trim();
+
+            if (postContent === "" && postHeading === "" && postHashtag === "" && !selectedFile) {
+                showModal("Please enter a post, a heading, a hashtag, or add an image before submitting.");
+                return;
+            }
+
+            let imageUrl = null;
+
+            try {
+                if (selectedFile) {
+                    const formData = new FormData();
+                    formData.append('image', selectedFile);
+
+                    const uploadResponse = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (!uploadResponse.ok) {
+                        throw new Error('Image upload failed');
+                    }
+
+                    const uploadResult = await uploadResponse.json();
+                    imageUrl = uploadResult.imageUrl;
+                }
+
+                const postData = { 
+                    heading: postHeading, 
+                    content: postContent, 
+                    hashtag: postHashtag, 
+                    imageUrl: imageUrl 
+                };
+
+                const response = await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(postData),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to submit post');
+                }
+
+                postInput.value = '';
+                postHeadingInput.value = '';
+                postHashtagInput.value = '';
+                imagePreviewContainer.classList.add('hidden');
+                imagePreviewImg.src = '';
+                selectedFile = null;
+                imageUploadInput.value = '';
+
+                fetchAndDisplayPosts(); // Refresh posts after submitting
+            } catch (error) {
+                console.error('Error submitting post:', error);
+                showModal('Failed to submit post. Please try again.');
+            }
+        }
+
+        async function handleSubmitReply(postId, replyInput) {
+            const content = replyInput.value.trim();
+            if (content === '') {
+                showModal('Please enter a reply.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/posts/${postId}/replies`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content }),
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to submit reply');
+                }
+                replyInput.value = '';
+                fetchAndDisplayPosts(); // Refresh posts to show new reply count
+            } catch (error) {
+                console.error('Error submitting reply:', error);
+                showModal('Failed to submit reply. Please try again.');
+            }
+        }
+
+        async function fetchReplies(postId, repliesListElement) {
+            try {
+                const response = await fetch(`/api/posts/${postId}/replies`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch replies');
+                }
+                const result = await response.json();
+                const replies = result.data;
+
+                repliesListElement.innerHTML = '';
+                if (replies.length === 0) {
+                    repliesListElement.innerHTML = '<p class="text-gray-500 text-sm text-center">No replies yet.</p>';
+                } else {
+                    replies.forEach(reply => {
+                        const replyElement = document.createElement('div');
+                        replyElement.className = 'reply-box bg-gray-700 p-2 rounded-lg shadow-sm';
+                        replyElement.innerHTML = `
+                            <p class="text-xs text-gray-400 font-semibold mb-1">Anonymous</p>
+                            <p class="text-gray-200 break-words text-sm">${reply.content}</p>
+                        `;
+                        repliesListElement.appendChild(replyElement);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching replies:', error);
+                repliesListElement.innerHTML = '<p class="text-red-500 text-sm text-center">Failed to load replies.</p>';
+            }
+        }
+
+        async function fetchAndDisplayPosts(searchTerm = '') {
+            loadingMessage.textContent = 'Loading posts...';
+            try {
+                const response = await fetch('/api/posts');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch posts');
+                }
+                const result = await response.json();
+                let posts = result.data;
+
+                if (searchTerm.trim() !== '') {
+                    const lowercasedTerm = searchTerm.trim().toLowerCase();
+                    posts = posts.filter(post => 
+                        (post.heading && post.heading.toLowerCase().includes(lowercasedTerm)) ||
+                        (post.hashtag && post.hashtag.toLowerCase().includes(lowercasedTerm))
+                    );
+                }
+
+                displayPosts(posts);
+                loadingMessage.textContent = '';
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+                loadingMessage.textContent = 'Failed to load posts.';
+            }
+        }
+
+        function initApp() {
+            submitPostBtn.addEventListener('click', submitPost);
+            searchBtn.addEventListener('click', () => fetchAndDisplayPosts(searchInput.value));
+            searchInput.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    fetchAndDisplayPosts(searchInput.value);
+                }
+            });
+            fetchAndDisplayPosts();
+        }
+
+        initApp();
+    </script>
+</body>
+</html>
