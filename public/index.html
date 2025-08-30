@@ -142,7 +142,7 @@
                         rows="3"
                         placeholder="Share your thoughts or a link to your hat masterpiece!"></textarea>
 
-            <div class="flex flex-col items-center justify-center space-y-3">
+            <div class="flex flex-col items-center justify-center space-y-3" style="display: none;">
                 <div id="image-preview" class="hidden w-full max-w-sm rounded-lg overflow-hidden border border-gray-600">
                     <img id="image-preview-img" src="" alt="Image preview" class="w-full h-auto object-cover">
                 </div>
@@ -333,38 +333,19 @@
             const postHeading = postHeadingInput.value.trim();
             let postHashtag = postHashtagInput.value.trim();
 
-            if (postContent === "" && postHeading === "" && postHashtag === "" && !selectedFile) {
-                showModal("Please enter a post, a heading, a hashtag, or add an image before submitting.");
+            if (postContent === "" && postHeading === "" && postHashtag === "") {
+                showModal("Please enter a post, a heading, or a hashtag before submitting.");
                 return;
             }
 
-            let imageUrl = null;
+            const postData = { 
+                heading: postHeading, 
+                content: postContent, 
+                hashtag: postHashtag, 
+                imageUrl: null // Image uploads are disabled
+            };
 
             try {
-                if (selectedFile) {
-                    const formData = new FormData();
-                    formData.append('image', selectedFile);
-
-                    const uploadResponse = await fetch('/api/upload', {
-                        method: 'POST',
-                        body: formData,
-                    });
-
-                    if (!uploadResponse.ok) {
-                        throw new Error('Image upload failed');
-                    }
-
-                    const uploadResult = await uploadResponse.json();
-                    imageUrl = uploadResult.imageUrl;
-                }
-
-                const postData = { 
-                    heading: postHeading, 
-                    content: postContent, 
-                    hashtag: postHashtag, 
-                    imageUrl: imageUrl 
-                };
-
                 const response = await fetch('/api/posts', {
                     method: 'POST',
                     headers: {
